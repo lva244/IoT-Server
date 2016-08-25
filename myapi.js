@@ -29,6 +29,7 @@ app.get('/api/rooms', function(req, res){
         if(!err)
         {
           db.close();
+          res.header('Access-Control-Allow-Origin', '*');
           res.status(200).send(docs);
         }
       });
@@ -49,8 +50,6 @@ app.get("/api/:roomtype/:led", function(req, res){
       collection.find({"room": room}).toArray(function(err, docs){
         if(!err){
           db.close();
-          res.status(200).send("OK");
-          console.log(docs[0].ip);
           var options = {
             host: docs[0].ip,
             path: '/'+led
@@ -66,7 +65,8 @@ app.get("/api/:roomtype/:led", function(req, res){
 
             //the whole response has been recieved, so we just print it out here
             response.on('end', function () {
-              console.log(str);
+              res.header('Access-Control-Allow-Origin', '*');
+              res.status(200).send(str);
             });
           }).end();
         }
