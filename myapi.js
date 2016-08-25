@@ -47,7 +47,7 @@ app.get("/api/:roomtype/:led", function(req, res){
     } else {
       var collection = db.collection("room");
 
-      collection.find({"room": room}).toArray(function(err, docs){
+      collection.find({"_id": room}).toArray(function(err, docs){
         if(!err){
           db.close();
           var options = {
