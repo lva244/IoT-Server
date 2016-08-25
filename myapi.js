@@ -1,17 +1,15 @@
 var http = require('http');
 var express = require('express');
 var path    = require("path");
+var MongoClient = require("mongodb").MongoClient;
 
-var ip = "";
+var url = "mongodb://localhost:27017/smart_home";
 
 var app = express();
 
 var bodyParser = require('body-parser');
 app.use(bodyParser.json()); // support json encoded bodies
 app.use(bodyParser.urlencoded({ extended: true })); // support encoded bodies
-
-var inputs = [{ pin: '11', gpio: '17', value: 1 },
-              { pin: '12', gpio: '18', value: 0 }];
 
 app.use(express['static'](__dirname));
 
@@ -20,25 +18,93 @@ app.get('/', function(req, res) {
   res.sendFile(path.join(__dirname+'/index.html'));
 }); 
 
-// Express route for incoming requests for a customer name
-app.get('/inputs/:id', function(req, res) {
-  res.status(200).send(inputs[req.params.id]);
-}); 
+app.get('/api/rooms', function(req, res){
+  MongoClient.connect(url, function(err, db){
+    if(err){
+      console.log("Error: "+err);
+    } else {
+      var collection = db.collection("room");
 
-// Express route for incoming requests for a list of all inputs
-app.get('/inputs', function (req, res) {
-  // send an object as a JSON string
-  console.log('all inputs');
-  res.status(200).send(inputs);
-}); // apt.get()
+      collection.find().toArray(function(err, docs){
+        if(!err)
+        {
+          db.close();
+          res.status(200).send(docs);
+        }
+      });
+    }
+  });
+});
 
-// routes will go here
-app.get('/ipaddress', function(req, res) {
-  var arduino_ip = req.param('ip');  
+app.get("/api/:roomtype/:led", function(req, res){
+  var room = req.params.roomtype;
+  var led = req.params.led;
 
-  ip = arduino_ip;
+  MongoClient.connect(url, function(err, db){
+    if(err){
+      console.log("Error: "+ err);
+    } else {
+      var collection = db.collection("room");
 
-  res.send(arduino_ip + " has success to register");
+      collection.find({"room": room}).toArray(function(err, docs){
+        if(!err){
+          db.close();
+          res.status(200).send("OK");
+          console.log(docs[0].ip);
+          var options = {
+            host: docs[0].ip,
+            path: '/'+led
+          };
+
+          http.request(options, function(response){
+            var str = '';
+
+            //another chunk of data has been recieved, so append it to `str`
+            response.on('data', function (chunk) {
+              str += chunk;
+            });
+
+            //the whole response has been recieved, so we just print it out here
+            response.on('end', function () {
+              console.log(str);
+            });
+          }).end();
+        }
+      });
+    }
+  });
+})
+
+//Post information
+app.post('/api/register', function(req, res) {
+  var ip_address = req.body.ip;
+  var type_of_room = req.body.room;
+  var led1 = req.body.led1;
+  var led2 = req.body.led2;
+
+  var obj = {
+    _id: type_of_room,
+    ip: ip_address,
+    room: type_of_room,
+    led: {
+      led_1: led1,
+      led_2: led2
+    }
+  }
+
+  // Connect to the db
+  MongoClient.connect(url, function(err, db) {
+    if(err) {
+      console.log("Error: "+ err);
+    } else {
+      var collection = db.collection("room");
+
+      collection.update({"_id": type_of_room}, {$set:{ip:ip_address,led:{led_1: led1,led_2:led2}}}, {upsert:true});
+
+      db.close();
+      res.send(obj);
+    }
+  });
 });
 
 // Express route for any other unrecognised incoming requests
