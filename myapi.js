@@ -1,9 +1,16 @@
 var http = require('http');
 var express = require('express');
 var path    = require("path");
-var MongoClient = require("mongodb").MongoClient;
+var firebase = require("firebase");
 
-var url = "mongodb://localhost:27017/smart_home";
+// Initialize Firebase
+var config = {
+  apiKey: "AIzaSyAAoCFMy4H5C5jrGA1TRLchrqXmrkhquWU",
+  authDomain: "smart-home-42c48.firebaseapp.com",
+  databaseURL: "https://smart-home-42c48.firebaseio.com",
+  storageBucket: "smart-home-42c48.appspot.com",
+};
+firebase.initializeApp(config);
 
 var app = express();
 
@@ -19,68 +26,47 @@ app.get('/', function(req, res) {
 }); 
 
 app.get('/api/rooms', function(req, res){
-  MongoClient.connect(url, function(err, db){
-    if(err){
-      console.log("Error: "+err);
-    } else {
-      var collection = db.collection("room");
-
-      collection.find().toArray(function(err, docs){
-        if(!err)
-        {
-          db.close();
-          res.header('Access-Control-Allow-Origin', '*');
-          res.status(200).send(docs);
-        }
-      });
-    }
-  });
+  
 });
 
 app.get("/api/:roomtype/:led", function(req, res){
   var room = req.params.roomtype;
   var led = req.params.led;
 
-  MongoClient.connect(url, function(err, db){
-    if(err){
-      console.log("Error: "+ err);
-    } else {
-      var collection = db.collection("room");
+  var options = {
+    host: docs[0].ip,
+    path: '/'+led
+  };
 
-      collection.find({"_id": room}).toArray(function(err, docs){
-        if(!err){
-          db.close();
-          var options = {
-            host: docs[0].ip,
-            path: '/'+led
-          };
+  http.request(options, function(response){
+    var str = '';
 
-          http.request(options, function(response){
-            var str = '';
+    //another chunk of data has been recieved, so append it to `str`
+    response.on('data', function (chunk) {
+      str += chunk;
+    });
 
-            //another chunk of data has been recieved, so append it to `str`
-            response.on('data', function (chunk) {
-              str += chunk;
-            });
+    //the whole response has been recieved, so we just print it out here
+    response.on('end', function () {
+      if(str!=="")
+      {
+        var firebaseRef = firebase.database().ref("rooms/led/"+led).update(str);
+      }
+      res.header('Access-Control-Allow-Origin', '*');
+      res.status(200).send(str);
+    });
+  }).end();
+        
+});
 
-            //the whole response has been recieved, so we just print it out here
-            response.on('end', function () {
-              res.header('Access-Control-Allow-Origin', '*');
-              res.status(200).send(str);
-            });
-          }).end();
-        }
-      });
-    }
-  });
-})
+var rooms = [];
 
 //Post information
 app.post('/api/register', function(req, res) {
   var ip_address = req.body.ip;
   var type_of_room = req.body.room;
-  var led1 = req.body.led1;
-  var led2 = req.body.led2;
+  var led1 = (req.body.led1) == "true" ? true : false;
+  var led2 = (req.body.led2) == "true" ? true : false;
 
   var obj = {
     _id: type_of_room,
@@ -92,19 +78,10 @@ app.post('/api/register', function(req, res) {
     }
   }
 
-  // Connect to the db
-  MongoClient.connect(url, function(err, db) {
-    if(err) {
-      console.log("Error: "+ err);
-    } else {
-      var collection = db.collection("room");
+  firebase.database().ref("rooms/"+type_of_room).set(obj);
 
-      collection.update({"_id": type_of_room}, {$set:{ip:ip_address,led:{led_1: led1,led_2:led2}}}, {upsert:true});
+  res.status(200).send("OK");
 
-      db.close();
-      res.send(obj);
-    }
-  });
 });
 
 // Express route for any other unrecognised incoming requests
@@ -120,6 +97,65 @@ app.use(function(err, req, res, next) {
     next(err);
   }
 });
+
+//Get list of rooms in database after boot
+var getRooms = function(){
+  var roomsRef = firebase.database().ref("rooms/");
+
+  roomsRef.on("child_added", function(data){
+    console.log(data.val());
+    roomsRef.child(data.key+"/led").on("child_changed", function(snapshot){
+      var options = {
+        host: data.val().ip,
+        path: '/'+snapshot.key
+      };
+
+      console.log(options);
+
+      http.request(options, function(response){
+        var str = '';
+
+        //another chunk of data has been recieved, so append it to `str`
+        response.on('data', function (chunk) {
+          str += chunk;
+        });
+
+        //the whole response has been recieved, so we just print it out here
+        response.on('end', function () {
+        });
+      }).end();
+    });
+  });
+}
+
+getRooms();
+
+//Send request to arduino to interact with led
+var controlLed = function(arduino_ip){
+  var options = {
+    host: arduino_ip,
+    path: '/'+led
+  };
+
+  http.request(options, function(response){
+    var str = '';
+
+    //another chunk of data has been recieved, so append it to `str`
+    response.on('data', function (chunk) {
+      str += chunk;
+    });
+
+    //the whole response has been recieved, so we just print it out here
+    response.on('end', function () {
+      if(str!=="")
+      {
+        var firebaseRef = firebase.database().ref("rooms/led/"+led).update(str);
+      }
+      res.header('Access-Control-Allow-Origin', '*');
+      res.status(200).send(str);
+    });
+  }).end();
+};
 
 app.listen(3000);
 console.log('App Server is listening on port 3000');
