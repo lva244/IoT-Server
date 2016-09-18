@@ -159,18 +159,27 @@ var getTempAndHum = function(){
 
         var options_temp = {
           temperature: arr_temp_hum[0],
-          date: date
+          date: date.toString()
         };
 
         var options_hum = {
           temperature: arr_temp_hum[1],
-          date: date
+          date: date.toString()
         };
 
+        console.log(options_temp);
+        console.log(options_hum);
+
         var firebaseRefTemp = firebase.database().ref("temperature");
+        firebaseRefTemp.push({
+          temperature: arr_temp_hum[0],
+          date: date.toString()
+        });
         var firebaseRefHum = firebase.database().ref("humidity");
-        firebaseRefTemp.push(options_temp);
-        firebaseRefHum.push(options_hum);
+        firebaseRefHum.push({
+          temperature: arr_temp_hum[1],
+          date: date.toString()
+        });
       });
     }).end();
   });
