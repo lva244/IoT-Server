@@ -177,7 +177,7 @@ var getTempAndHum = function(){
         });
         var firebaseRefHum = firebase.database().ref("humidity");
         firebaseRefHum.push({
-          temperature: arr_temp_hum[1],
+          humidity: arr_temp_hum[1],
           date: date.toString()
         });
       });
