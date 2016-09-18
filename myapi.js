@@ -98,7 +98,7 @@ app.use(function(err, req, res, next) {
   }
 });
 
-//Get list of rooms in database after boot
+//Get list of rooms in database after boot and listen when have change on led state
 var getRooms = function(){
   var roomsRef = firebase.database().ref("rooms/");
 
@@ -130,6 +130,53 @@ var getRooms = function(){
 
 getRooms();
 
+//Get temperature and humidity from arduino and upload to server
+var getTempAndHum = function(){
+  var roomsRef = firebase.database().ref("rooms/");
+
+  roomsRef.on("child_added", function(data){
+    console.log(data.val());
+ 
+    var options = {
+      host: data.val().ip,
+      path: '/dht11'
+    };
+
+    console.log(options);
+
+    http.request(options, function(response){
+      var str = '';
+
+      //another chunk of data has been recieved, so append it to `str`
+      response.on('data', function (chunk) {
+        str += chunk;
+      });
+
+      //the whole response has been recieved, so we just print it out here
+      response.on('end', function () {
+        var date = new Date();
+        var arr_temp_hum = str.split(" ");
+
+        var options_temp = {
+          temperature: arr_temp_hum[0],
+          date: date
+        };
+
+        var options_hum = {
+          temperature: arr_temp_hum[1],
+          date: date
+        };
+
+        var firebaseRef = firebase.database();
+        firebaseRef.child("temperature").push(options_temp);
+        firebaseRef.child("humidity").push(options_hum);
+      });
+    }).end();
+  });
+}
+
+setInterval(function(){ getTempAndHum(); }, 60000);
+
 //Send request to arduino to interact with led
 var controlLed = function(arduino_ip){
   var options = {
@@ -156,6 +203,9 @@ var controlLed = function(arduino_ip){
     });
   }).end();
 };
+
+//Function get temp and hum
+
 
 app.listen(3000);
 console.log('App Server is listening on port 3000');
