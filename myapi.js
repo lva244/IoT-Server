@@ -167,9 +167,10 @@ var getTempAndHum = function(){
           date: date
         };
 
-        var firebaseRef = firebase.database();
-        firebaseRef.child("temperature").push(options_temp);
-        firebaseRef.child("humidity").push(options_hum);
+        var firebaseRefTemp = firebase.database().ref("temperature");
+        var firebaseRefHum = firebase.database().ref("humidity");
+        firebaseRefTemp.push(options_temp);
+        firebaseRefHum.push(options_hum);
       });
     }).end();
   });
