@@ -76,7 +76,8 @@ app.post('/api/register', function(req, res) {
     led: {
       led_1: led1,
       led_2: led2
-    }
+    },
+    state: "on"
   }
 
   firebase.database().ref("rooms/"+mac_address).set(obj);
