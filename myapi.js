@@ -63,13 +63,14 @@ var rooms = [];
 
 //Post information
 app.post('/api/register', function(req, res) {
+  var mac_address = req.body.mac_address;
   var ip_address = req.body.ip;
   var type_of_room = req.body.room;
   var led1 = (req.body.led1) == "true" ? true : false;
   var led2 = (req.body.led2) == "true" ? true : false;
 
   var obj = {
-    _id: type_of_room,
+    _id: mac_address,
     ip: ip_address,
     room: type_of_room,
     led: {
