@@ -157,6 +157,7 @@ var getTempAndHum = function(){
       response.on('end', function () {
         var date = new Date();
         var arr_temp_hum = str.split(" ");
+        var mac_address = arr_temp_hum[2];
 
         var options_temp = {
           temperature: arr_temp_hum[0],
@@ -171,12 +172,12 @@ var getTempAndHum = function(){
         console.log(options_temp);
         console.log(options_hum);
 
-        var firebaseRefTemp = firebase.database().ref("temperature");
+        var firebaseRefTemp = firebase.database().ref(mac_address+"/temperature");
         firebaseRefTemp.push({
           temperature: arr_temp_hum[0],
           date: date.toString()
         });
-        var firebaseRefHum = firebase.database().ref("humidity");
+        var firebaseRefHum = firebase.database().ref(mac_address+"/humidity");
         firebaseRefHum.push({
           humidity: arr_temp_hum[1],
           date: date.toString()
