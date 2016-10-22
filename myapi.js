@@ -158,6 +158,7 @@ var getTempAndHum = function(){
         var date = new Date();
         var arr_temp_hum = str.split(" ");
         var mac_address = arr_temp_hum[2];
+        console.log(mac_address);
 
         var options_temp = {
           temperature: arr_temp_hum[0],
