@@ -79,7 +79,7 @@ app.post('/api/register', function(req, res) {
     }
   }
 
-  firebase.database().ref("rooms/"+type_of_room).set(obj);
+  firebase.database().ref("rooms/"+mac_address).set(obj);
 
   res.status(200).send("OK");
 
@@ -173,12 +173,12 @@ var getTempAndHum = function(){
         console.log(options_temp);
         console.log(options_hum);
 
-        var firebaseRefTemp = firebase.database().ref(mac_address+"/temperature");
+        var firebaseRefTemp = firebase.database().ref("temperature/"+mac_address);
         firebaseRefTemp.push({
           temperature: arr_temp_hum[0],
           date: date.toString()
         });
-        var firebaseRefHum = firebase.database().ref(mac_address+"/humidity");
+        var firebaseRefHum = firebase.database().ref("humidity/"+mac_address);
         firebaseRefHum.push({
           humidity: arr_temp_hum[1],
           date: date.toString()
