@@ -43,7 +43,13 @@ app.get("/api/:mac_address/:led/:state", function(req, res){
   console.log(led);
   console.log(state);
 
-  var firebaseRef = firebase.database().ref("rooms/"+mac_address+"/led/"+led).update(state);
+  if(led == "led_1")
+  {
+    var firebaseRef = firebase.database().ref("rooms/"+mac_address+"/led").update({"led_1": state});
+  } else if (led == "led_2")
+  {
+    var firebaseRef = firebase.database().ref("rooms/"+mac_address+"/led").update({"led_2": state});
+  }
 });
 
 var rooms = [];
