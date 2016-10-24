@@ -3,6 +3,8 @@ var express = require('express');
 var path    = require("path");
 var firebase = require("firebase");
 
+var fromArduino = false;
+
 // Initialize Firebase
 var config = {
   apiKey: "AIzaSyAAoCFMy4H5C5jrGA1TRLchrqXmrkhquWU",
@@ -35,6 +37,7 @@ process.on('uncaughtException', function (exception) {
 });
 
 app.get("/api/:mac_address/:led/:state", function(req, res){
+  fromArduino = true;
   var mac_address = req.params.mac_address;
   var led = req.params.led;
   var state = req.params.state;
@@ -59,6 +62,7 @@ app.get("/api/:mac_address/:led/:state", function(req, res){
   }
 
   res.status(200).send('OK change led');
+  fromArduino = false;
 });
 
 var rooms = [];
@@ -111,25 +115,28 @@ var getRooms = function(){
     console.log(data.val());
     console.log(data.key);
     roomsRef.child(data.key+"/led").on("child_changed", function(snapshot){
-      var options = {
-        host: data.val().ip,
-        path: '/'+snapshot.key
-      };
+      if(!fromArduino)
+      {
+        var options = {
+          host: data.val().ip,
+          path: '/'+snapshot.key
+        };
 
-      console.log(options);
+        console.log(options);
 
-      http.request(options, function(response){
-        var str = '';
+        http.request(options, function(response){
+          var str = '';
 
-        //another chunk of data has been recieved, so append it to `str`
-        response.on('data', function (chunk) {
-          str += chunk;
-        });
+          //another chunk of data has been recieved, so append it to `str`
+          response.on('data', function (chunk) {
+            str += chunk;
+          });
 
-        //the whole response has been recieved, so we just print it out here
-        response.on('end', function () {
-        });
-      }).end();
+          //the whole response has been recieved, so we just print it out here
+          response.on('end', function () {
+          });
+        }).end();
+      }
     });
   });
 }
