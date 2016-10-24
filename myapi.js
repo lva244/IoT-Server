@@ -50,6 +50,8 @@ app.get("/api/:mac_address/:led/:state", function(req, res){
   {
     var firebaseRef = firebase.database().ref("rooms/"+mac_address+"/led").update({"led_2": state.toString()});
   }
+
+  res.status(200).send('OK change led');
 });
 
 var rooms = [];
