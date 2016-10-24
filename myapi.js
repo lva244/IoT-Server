@@ -29,6 +29,11 @@ app.get('/api/rooms', function(req, res){
   
 });
 
+process.on('uncaughtException', function (exception) {
+ // handle or ignore error
+ console.log(exception);
+});
+
 app.get("/api/:roomtype/:led", function(req, res){
   var room = req.params.roomtype;
   var led = req.params.led;
