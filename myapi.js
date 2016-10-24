@@ -45,10 +45,10 @@ app.get("/api/:mac_address/:led/:state", function(req, res){
 
   if(led == "led_1")
   {
-    var firebaseRef = firebase.database().ref("rooms/"+mac_address+"/led").update({"led_1": state});
+    var firebaseRef = firebase.database().ref("rooms/"+mac_address+"/led").update({"led_1": state.toString()});
   } else if (led == "led_2")
   {
-    var firebaseRef = firebase.database().ref("rooms/"+mac_address+"/led").update({"led_2": state});
+    var firebaseRef = firebase.database().ref("rooms/"+mac_address+"/led").update({"led_2": state.toString()});
   }
 });
 
