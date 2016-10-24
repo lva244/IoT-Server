@@ -34,34 +34,12 @@ process.on('uncaughtException', function (exception) {
  console.log(exception);
 });
 
-app.get("/api/:mac_address/:led", function(req, res){
-  var room = req.params.roomtype;
+app.get("/api/:mac_address/:led/:state", function(req, res){
+  var mac_address = req.params.mac_address;
   var led = req.params.led;
+  var state = req.params.state;
 
-  var options = {
-    host: docs[0].ip,
-    path: '/'+led
-  };
-
-  http.request(options, function(response){
-    var str = '';
-
-    //another chunk of data has been recieved, so append it to `str`
-    response.on('data', function (chunk) {
-      str += chunk;
-    });
-
-    //the whole response has been recieved, so we just print it out here
-    response.on('end', function () {
-      if(str!=="")
-      {
-        var firebaseRef = firebase.database().ref("rooms/"+mac_address+"/led/"+led).update(str);
-      }
-      res.header('Access-Control-Allow-Origin', '*');
-      res.status(200).send(str);
-    });
-  }).end();
-        
+  var firebaseRef = firebase.database().ref("rooms/"+mac_address+"/led/"+led).update(state);
 });
 
 var rooms = [];
