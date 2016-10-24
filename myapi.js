@@ -39,6 +39,10 @@ app.get("/api/:mac_address/:led/:state", function(req, res){
   var led = req.params.led;
   var state = req.params.state;
 
+  console.log(mac_address);
+  console.log(led);
+  console.log(state);
+
   var firebaseRef = firebase.database().ref("rooms/"+mac_address+"/led/"+led).update(state);
 });
 
