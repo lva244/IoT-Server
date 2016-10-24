@@ -34,7 +34,7 @@ process.on('uncaughtException', function (exception) {
  console.log(exception);
 });
 
-app.get("/api/:roomtype/:led", function(req, res){
+app.get("/api/:mac_address/:led", function(req, res){
   var room = req.params.roomtype;
   var led = req.params.led;
 
@@ -55,7 +55,7 @@ app.get("/api/:roomtype/:led", function(req, res){
     response.on('end', function () {
       if(str!=="")
       {
-        var firebaseRef = firebase.database().ref("rooms/led/"+led).update(str);
+        var firebaseRef = firebase.database().ref("rooms/"+mac_address+"/led/"+led).update(str);
       }
       res.header('Access-Control-Allow-Origin', '*');
       res.status(200).send(str);
@@ -112,6 +112,7 @@ var getRooms = function(){
 
   roomsRef.on("child_added", function(data){
     console.log(data.val());
+    console.log(data.key);
     roomsRef.child(data.key+"/led").on("child_changed", function(snapshot){
       var options = {
         host: data.val().ip,
@@ -196,36 +197,6 @@ var getTempAndHum = function(){
 }
 
 setInterval(function(){ getTempAndHum(); }, 60000);
-
-//Send request to arduino to interact with led
-var controlLed = function(arduino_ip){
-  var options = {
-    host: arduino_ip,
-    path: '/'+led
-  };
-
-  http.request(options, function(response){
-    var str = '';
-
-    //another chunk of data has been recieved, so append it to `str`
-    response.on('data', function (chunk) {
-      str += chunk;
-    });
-
-    //the whole response has been recieved, so we just print it out here
-    response.on('end', function () {
-      if(str!=="")
-      {
-        var firebaseRef = firebase.database().ref("rooms/led/"+led).update(str);
-      }
-      res.header('Access-Control-Allow-Origin', '*');
-      res.status(200).send(str);
-    });
-  }).end();
-};
-
-//Function get temp and hum
-
 
 app.listen(3000);
 console.log('App Server is listening on port 3000');
