@@ -43,12 +43,19 @@ app.get("/api/:mac_address/:led/:state", function(req, res){
   console.log(led);
   console.log(state);
 
+  if(state == "true")
+  {
+    state = true;
+  } else {
+    state = false;
+  }
+
   if(led == "led_1")
   {
-    var firebaseRef = firebase.database().ref("rooms/"+mac_address+"/led").update({"led_1": state.toString()});
+    var firebaseRef = firebase.database().ref("rooms/"+mac_address+"/led").update({"led_1": state});
   } else if (led == "led_2")
   {
-    var firebaseRef = firebase.database().ref("rooms/"+mac_address+"/led").update({"led_2": state.toString()});
+    var firebaseRef = firebase.database().ref("rooms/"+mac_address+"/led").update({"led_2": state});
   }
 
   res.status(200).send('OK change led');
