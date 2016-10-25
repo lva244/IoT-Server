@@ -144,11 +144,10 @@ getRooms();
 
 //Check online
 var checkOnline = function(){
-  var roomsRef = firebase.database().ref("rooms/");
-  console.log("Check");
+  var roomsRef = firebase.database().ref("check");
   roomsRef.on("child_changed", function(data){
     console.log(data.val());
-    if(data.val().sdoCheck == "yes")
+    if(data.val().sdoCheck != "no")
     {
       var options = {
         host: data.val().ip,
@@ -167,7 +166,7 @@ var checkOnline = function(){
 
         //the whole response has been recieved, so we just print it out here
         response.on('end', function () {
-          var firebaseRef = firebase.database().ref("rooms/"+mac_address).update({"sdoCheck": "no"});
+          var firebaseRef = firebase.database().ref("check").update({"sdoCheck": "no"});
           if(str == "OK_ON")
           {
             var firebaseRef = firebase.database().ref("rooms/"+mac_address).update({"state": "on"});
