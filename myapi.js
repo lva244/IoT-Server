@@ -159,6 +159,16 @@ var checkOnline = function(){
       http.request(options, function(response){
         var str = '';
 
+        response.on('error', function(err){
+          console.log("err");
+          if(str == "OK_ON")
+          {
+            var firebaseRef = firebase.database().ref("rooms/"+mac_address).update({"state": "on"});
+          } else {
+            var firebaseRef = firebase.database().ref("rooms/"+mac_address).update({"sdoCheck": "off"});
+          }
+        });
+
         //another chunk of data has been recieved, so append it to `str`
         response.on('data', function (chunk) {
           str += chunk;
