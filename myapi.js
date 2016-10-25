@@ -142,6 +142,44 @@ var getRooms = function(){
 
 getRooms();
 
+//Check online
+var checkOnline = function(){
+  var roomsRef = firebase.database().ref("rooms/");
+
+  roomsRef.on("child_changed", function(data){
+    console.log(data.val());
+    if(data.val().sdoCheck == "yes")
+    {
+      var options = {
+        host: data.val().ip,
+        path: '/checkOnline'
+      };
+
+      console.log(options);
+
+      http.request(options, function(response){
+        var str = '';
+
+        //another chunk of data has been recieved, so append it to `str`
+        response.on('data', function (chunk) {
+          str += chunk;
+        });
+
+        //the whole response has been recieved, so we just print it out here
+        response.on('end', function () {
+          var firebaseRef = firebase.database().ref("rooms/"+mac_address).update({"sdoCheck": "no"});
+          if(str == "OK")
+          {
+            var firebaseRef = firebase.database().ref("rooms/"+mac_address).update({"state": "on"});
+          } else {
+            var firebaseRef = firebase.database().ref("rooms/"+mac_address).update({"sdoCheck": "off"});
+          }
+        });
+      }).end();
+    }
+  });
+}
+
 //Get temperature and humidity from arduino and upload to server
 var getTempAndHum = function(){
   var roomsRef = firebase.database().ref("rooms/");
