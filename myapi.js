@@ -146,7 +146,7 @@ getRooms();
 var checkOnline = function(){
   var roomsRef = firebase.database().ref("check");
   roomsRef.on("child_changed", function(data){
-    console.log(data.val());
+    console.log(data.val().ip);
     if(data.val() != "no")
     {
       var options = {
