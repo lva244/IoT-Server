@@ -84,7 +84,8 @@ app.post('/api/register', function(req, res) {
       led_2: led2
     },
     state: "on",
-    icon: "unknown"
+    icon: "unknown",
+    doCheck: "no"
   }
 
   firebase.database().ref("rooms/"+mac_address).set(obj);
@@ -112,8 +113,6 @@ var getRooms = function(){
   var roomsRef = firebase.database().ref("rooms/");
 
   roomsRef.on("child_added", function(data){
-    console.log(data.val());
-    console.log(data.key);
     roomsRef.child(data.key+"/led").on("child_changed", function(snapshot){
       if(!fromArduino)
       {
