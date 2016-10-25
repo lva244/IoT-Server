@@ -147,7 +147,7 @@ var checkOnline = function(){
   var roomsRef = firebase.database().ref("check");
   roomsRef.on("child_changed", function(data){
     console.log(data.val());
-    if(data.val().sdoCheck != "no")
+    if(data.val().doCheck != "no")
     {
       var options = {
         host: data.val().ip,
