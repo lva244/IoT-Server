@@ -145,7 +145,7 @@ getRooms();
 //Check online
 var checkOnline = function(){
   var roomsRef = firebase.database().ref("rooms/");
-
+  console.log("Check");
   roomsRef.on("child_changed", function(data){
     console.log(data.val());
     if(data.val().sdoCheck == "yes")
