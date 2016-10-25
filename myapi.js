@@ -168,7 +168,7 @@ var checkOnline = function(){
         //the whole response has been recieved, so we just print it out here
         response.on('end', function () {
           var firebaseRef = firebase.database().ref("rooms/"+mac_address).update({"sdoCheck": "no"});
-          if(str == "OK")
+          if(str == "OK_ON")
           {
             var firebaseRef = firebase.database().ref("rooms/"+mac_address).update({"state": "on"});
           } else {
@@ -179,6 +179,8 @@ var checkOnline = function(){
     }
   });
 }
+
+checkOnline();
 
 //Get temperature and humidity from arduino and upload to server
 var getTempAndHum = function(){
