@@ -147,7 +147,7 @@ var checkOnline = function(){
   var roomsRef = firebase.database().ref("check");
   roomsRef.on("child_changed", function(data){
     console.log(data.val());
-    if(data.val().doCheck != "no")
+    if(data.val() != "no")
     {
       var options = {
         host: data.val().ip,
@@ -161,11 +161,12 @@ var checkOnline = function(){
 
         response.on('error', function(err){
           console.log("err");
+          var firebaseRef = firebase.database().ref("check").update({"doCheck": "no"});
           if(str == "OK_ON")
           {
-            var firebaseRef = firebase.database().ref("rooms/"+mac_address).update({"state": "on"});
+            var firebaseRef = firebase.database().ref("rooms/"+data.val()).update({"state": "on"});
           } else {
-            var firebaseRef = firebase.database().ref("rooms/"+mac_address).update({"sdoCheck": "off"});
+            var firebaseRef = firebase.database().ref("rooms/"+data.val()).update({"state": "off"});
           }
         });
 
@@ -176,12 +177,12 @@ var checkOnline = function(){
 
         //the whole response has been recieved, so we just print it out here
         response.on('end', function () {
-          var firebaseRef = firebase.database().ref("check").update({"sdoCheck": "no"});
+          var firebaseRef = firebase.database().ref("check").update({"doCheck": "no"});
           if(str == "OK_ON")
           {
             var firebaseRef = firebase.database().ref("rooms/"+mac_address).update({"state": "on"});
           } else {
-            var firebaseRef = firebase.database().ref("rooms/"+mac_address).update({"sdoCheck": "off"});
+            var firebaseRef = firebase.database().ref("rooms/"+mac_address).update({"state": "off"});
           }
         });
       }).end();
