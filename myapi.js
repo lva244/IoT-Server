@@ -85,7 +85,7 @@ app.post('/api/register', function(req, res) {
     },
     state: "on",
     icon: "unknown",
-    doCheck: "no"
+    sdoCheck: "no"
   }
 
   firebase.database().ref("rooms/"+mac_address).set(obj);
