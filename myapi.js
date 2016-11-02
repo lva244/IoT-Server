@@ -146,7 +146,7 @@ var getRooms = function(){
           console.log("Check");
           var options = {
             host: data.val().ip,
-            path: '/'
+            path: '/checkOnline'
           };
 
           console.log(options);
