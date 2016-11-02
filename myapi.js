@@ -114,7 +114,6 @@ var getRooms = function(){
 
   roomsRef.on("child_added", function(data){
     roomsRef.child(data.key+"/led").on("child_changed", function(snapshot){
-      console.log("led");
       if(!fromArduino)
       {
         var options = {
@@ -138,10 +137,17 @@ var getRooms = function(){
         }).end();
       }
     });
+  });
+}
 
-    var checkRef = firebase.database().ref("rooms/"+data.key+"/sdoCheck");
-    checkRef.on("value", function(snapshot){
-        if(snapshot.val() == "yes")
+getRooms();
+
+//Check online
+var checkOnline = function(){
+  var checkRef = firebase.database().ref("rooms/");
+  checkRef.on("child_added", function(data){
+    checkRef.child(data.key).on("child_changed", function(snapshot){
+        if(snapshot.val() == "yes" && snapshot.key == "sdoCheck")
         {
           console.log("Check");
           var options = {
@@ -157,7 +163,8 @@ var getRooms = function(){
             //another chunk of data has been recieved, so append it to `str`
             response.on('data', function (chunk) {
               str += chunk;
-              var firebaseRef = firebase.database().ref("rooms/"+data.val()).update({"state": "on"});
+              var firebaseRef = firebase.database().ref("rooms/"+data.val()._id).update({"state": "on"});
+              var firebaseRef = firebase.database().ref("rooms/"+data.val()._id).update({"sdoCheck": "no"});
             });
 
             //the whole response has been recieved, so we just print it out here
@@ -179,57 +186,7 @@ var getRooms = function(){
   });
 }
 
-getRooms();
-
-//Check online
-var checkOnline = function(){
-  console.log("run");
-  var roomsRef = firebase.database().ref("check");
-  roomsRef.on("child_changed", function(data){
-    if(data.val() != "no")
-    {
-      var options = {
-        host: data.val().ip,
-        path: '/checkOnline'
-      };
-
-      console.log(options);
-
-      http.request(options, function(response){
-        var str = '';
-
-        response.on('error', function(err){
-          console.log("err\r\nwtf man\r\nit's error");
-          var firebaseRef = firebase.database().ref("check").update({"doCheck": "no"});
-          if(str == "OK_ON")
-          {
-            var firebaseRef = firebase.database().ref("rooms/"+data.val()).update({"state": "on"});
-          } else {
-            var firebaseRef = firebase.database().ref("rooms/"+data.val()).update({"state": "off"});
-          }
-        });
-
-        //another chunk of data has been recieved, so append it to `str`
-        response.on('data', function (chunk) {
-          str += chunk;
-        });
-
-        //the whole response has been recieved, so we just print it out here
-        response.on('end', function () {
-          var firebaseRef = firebase.database().ref("check").update({"doCheck": "no"});
-          if(str == "OK_ON")
-          {
-            var firebaseRef = firebase.database().ref("rooms/"+mac_address).update({"state": "on"});
-          } else {
-            var firebaseRef = firebase.database().ref("rooms/"+mac_address).update({"state": "off"});
-          }
-        });
-      }).end();
-    }
-  });
-}
-
-//checkOnline();
+checkOnline();
 
 //Get temperature and humidity from arduino and upload to server
 var getTempAndHum = function(){
