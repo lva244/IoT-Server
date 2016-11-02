@@ -114,6 +114,7 @@ var getRooms = function(){
 
   roomsRef.on("child_added", function(data){
     roomsRef.child(data.key+"/led").on("child_changed", function(snapshot){
+      console.log("led");
       if(!fromArduino)
       {
         var options = {
@@ -137,6 +138,44 @@ var getRooms = function(){
         }).end();
       }
     });
+
+    var checkRef = firebase.database().ref("rooms/"+data.key+"/sdoCheck");
+    checkRef.on("value", function(snapshot){
+        if(snapshot.val() == "yes")
+        {
+          console.log("Check");
+          var options = {
+            host: data.val().ip,
+            path: '/'
+          };
+
+          console.log(options);
+
+          var request = http.request(options, function(response){
+            var str = '';
+
+            //another chunk of data has been recieved, so append it to `str`
+            response.on('data', function (chunk) {
+              str += chunk;
+              var firebaseRef = firebase.database().ref("rooms/"+data.val()).update({"state": "on"});
+            });
+
+            //the whole response has been recieved, so we just print it out here
+            response.on('end', function () {
+            });
+          });
+
+          request.on('error', function(err) {
+              var updates = {};
+              updates['/rooms/' + data.key + "/sdoCheck"] = "no";
+              updates['/rooms/' +  data.key + "/state"] = "off";
+
+              firebase.database().ref().update(updates);
+          });
+
+          request.end();
+        }
+    });
   });
 }
 
@@ -144,9 +183,9 @@ getRooms();
 
 //Check online
 var checkOnline = function(){
+  console.log("run");
   var roomsRef = firebase.database().ref("check");
   roomsRef.on("child_changed", function(data){
-    console.log(data.val().ip);
     if(data.val() != "no")
     {
       var options = {
@@ -160,7 +199,7 @@ var checkOnline = function(){
         var str = '';
 
         response.on('error', function(err){
-          console.log("err");
+          console.log("err\r\nwtf man\r\nit's error");
           var firebaseRef = firebase.database().ref("check").update({"doCheck": "no"});
           if(str == "OK_ON")
           {
@@ -190,7 +229,7 @@ var checkOnline = function(){
   });
 }
 
-checkOnline();
+//checkOnline();
 
 //Get temperature and humidity from arduino and upload to server
 var getTempAndHum = function(){
@@ -249,7 +288,7 @@ var getTempAndHum = function(){
   });
 }
 
-setInterval(function(){ getTempAndHum(); }, 60000);
+setInterval(function(){ getTempAndHum(); }, 2 * 60000);
 
 app.listen(3000);
 console.log('App Server is listening on port 3000');
