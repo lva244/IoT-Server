@@ -33,13 +33,13 @@ app.get('/test', function(req, res){
 });
 
 app.get('/test_led1', function(req, res){
-  console.log("Welcome");
-  res.status(200).send('Welcome');
+  console.log("Led1");
+  res.status(200).send('Led1');
 });
 
 app.get('/test_led2', function(req, res){
-  console.log("Welcome");
-  res.status(200).send('Welcome');
+  console.log("Led2");
+  res.status(200).send('Led2');
 });
 
 process.on('uncaughtException', function (exception) {
