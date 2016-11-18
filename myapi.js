@@ -28,6 +28,7 @@ app.get('/', function(req, res) {
 }); 
 
 app.get('/test', function(req, res){
+  console.log("Welcome");
   res.status(200).send('Welcome');
 });
 
