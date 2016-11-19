@@ -5,6 +5,8 @@ var firebase = require("firebase");
 
 var fromArduino = false;
 
+var list_room = [];
+
 // Initialize Firebase
 var config = {
   apiKey: "AIzaSyAAoCFMy4H5C5jrGA1TRLchrqXmrkhquWU",
@@ -26,21 +28,6 @@ app.use(express['static'](__dirname));
 app.get('/', function(req, res) {
   res.sendFile(path.join(__dirname+'/index.html'));
 }); 
-
-app.get('/test', function(req, res){
-  console.log("Welcome");
-  res.status(200).send('Welcome');
-});
-
-app.get('/test_led1', function(req, res){
-  console.log("Led1");
-  res.status(200).send('Led1');
-});
-
-app.get('/test_led2', function(req, res){
-  console.log("Led2");
-  res.status(200).send('Led2');
-});
 
 process.on('uncaughtException', function (exception) {
  // handle or ignore error
@@ -80,11 +67,26 @@ var rooms = [];
 
 //Post information
 app.post('/api/register', function(req, res) {
+
   var mac_address = req.body.mac_address;
   var ip_address = req.body.ip;
   var type_of_room = req.body.room;
   var led1 = (req.body.led1) == "true" ? true : false;
   var led2 = (req.body.led2) == "true" ? true : false;
+  var dht11 = (req.body.dht11) == "true" ? true : false;
+  var mq135 = (req.body.mq135) == "true" ? true : false;
+  var gp2 = (req.body.gp2) == "true" ? true : false;
+  var watt_power = (req.body.watt_power) == "true" ? true : false;
+
+  var icon = "unknown";  
+  for (var i =0;i<list_room.length;i++)
+  {
+    if(mac_address==list_room[i]._id)
+    {
+      icon = list_room[i].icon;
+      break;
+    }
+  }
 
   var obj = {
     _id: mac_address,
@@ -94,8 +96,14 @@ app.post('/api/register', function(req, res) {
       led_1: led1,
       led_2: led2
     },
+    sensor: {
+      dht11: dht11,
+      mq135: mq135,
+      gp2: gp2,
+      watt_power: watt_power
+    },
     state: "on",
-    icon: "unknown",
+    icon: icon,
     sdoCheck: "no"
   }
 
@@ -103,6 +111,18 @@ app.post('/api/register', function(req, res) {
 
   res.status(200).send("OK");
 
+});
+
+app.post('/api/alert', function(req, res) {
+  var alert = (req.body.alert) == "true" ? true : false; 
+
+  var obj = {
+    alert: alert
+  }
+
+  firebase.database().ref("note").set(obj);
+
+  res.status(200).send("OK");
 });
 
 // Express route for any other unrecognised incoming requests
@@ -124,6 +144,20 @@ var getRooms = function(){
   var roomsRef = firebase.database().ref("rooms/");
 
   roomsRef.on("child_added", function(data){
+    list_room.push(data.val());
+    roomsRef.child(data.key).on("child_changed", function(snapshot){
+      if(snapshot.key=="icon")
+      {
+        for(var i=0;i<list_room.length;i++)
+        {
+          if(list_room[i]._id==data.key)
+          {
+            list_room[i].icon = snapshot.val();
+            break;
+          }
+        }
+      }
+    });
     roomsRef.child(data.key+"/led").on("child_changed", function(snapshot){
       if(!fromArduino)
       {
@@ -204,59 +238,66 @@ var getTempAndHum = function(){
   var roomsRef = firebase.database().ref("rooms/");
 
   roomsRef.on("child_added", function(data){
-    console.log(data.val());
- 
-    var options = {
-      host: data.val().ip,
-      path: '/dht11'
-    };
-
-    console.log(options);
-
-    http.request(options, function(response){
-      var str = '';
-
-      //another chunk of data has been recieved, so append it to `str`
-      response.on('data', function (chunk) {
-        str += chunk;
-      });
-
-      //the whole response has been recieved, so we just print it out here
-      response.on('end', function () {
-        var date = new Date();
-        var arr_temp_hum = str.split(" ");
-        var mac_address = arr_temp_hum[2];
-        console.log(mac_address);
-
-        var options_temp = {
-          temperature: arr_temp_hum[0],
-          date: date.toString()
+    
+    try
+    {
+      if(data.val().sensor.dht11)
+      {
+        var options = {
+          host: data.val().ip,
+          path: '/dht11'
         };
 
-        var options_hum = {
-          temperature: arr_temp_hum[1],
-          date: date.toString()
-        };
+        console.log(options);
 
-        console.log(options_temp);
-        console.log(options_hum);
+        http.request(options, function(response){
+          var str = '';
 
-        var firebaseRefTemp = firebase.database().ref("temperature/"+mac_address);
-        firebaseRefTemp.push({
-          temperature: arr_temp_hum[0],
-          date: date.toString()
-        });
-        var firebaseRefHum = firebase.database().ref("humidity/"+mac_address);
-        firebaseRefHum.push({
-          humidity: arr_temp_hum[1],
-          date: date.toString()
-        });
-      });
-    }).end();
+          //another chunk of data has been recieved, so append it to `str`
+          response.on('data', function (chunk) {
+            str += chunk;
+          });
+
+          //the whole response has been recieved, so we just print it out here
+          response.on('end', function () {
+            var date = new Date();
+            var arr_temp_hum = str.split(" ");
+            var mac_address = arr_temp_hum[2];
+            console.log(mac_address);
+
+            var options_temp = {
+              temperature: arr_temp_hum[0],
+              date: date.toString()
+            };
+
+            var options_hum = {
+              temperature: arr_temp_hum[1],
+              date: date.toString()
+            };
+
+            console.log(options_temp);
+            console.log(options_hum);
+
+            var firebaseRefTemp = firebase.database().ref("temperature");
+            firebaseRefTemp.push({
+              temperature: arr_temp_hum[0],
+              date: date.toString()
+            });
+            var firebaseRefHum = firebase.database().ref("humidity");
+            firebaseRefHum.push({
+              humidity: arr_temp_hum[1],
+              date: date.toString()
+            });
+          });
+        }).end();
+      }
+    } catch(e)
+    {
+
+    }
   });
 }
 
-setInterval(function(){ getTempAndHum(); }, 2 * 60000);
-
+//setInterval(function(){ getTempAndHum(); }, 2 * 60000);
 app.listen(3000);
 console.log('App Server is listening on port 3000');
