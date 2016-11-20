@@ -45,6 +45,8 @@ app.get("/api/:mac_address/:led/:state", function(req, res){
   var led = req.params.led;
   var state = req.params.state;
 
+  console.log(mac_address+ " " + led + " " + state);
+
   if(state == "true")
   {
     state = true;
