@@ -164,7 +164,7 @@ var getRooms = function(){
       {
         var options = {
           host: data.val().ip,
-          path: '/'+snapshot.key+"?state="+snapshot.val()
+          path: '/'+snapshot.key
         };
 
         console.log(options);
