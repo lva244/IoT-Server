@@ -34,15 +34,16 @@ process.on('uncaughtException', function (exception) {
  console.log(exception);
 });
 
+app.post("/api/dust", function(req, res){
+  var dust_state = req.body.dust_state;
+  res.status(200).send(dust_state);
+});
+
 app.get("/api/:mac_address/:led/:state", function(req, res){
   fromArduino = true;
   var mac_address = req.params.mac_address;
   var led = req.params.led;
   var state = req.params.state;
-
-  console.log(mac_address);
-  console.log(led);
-  console.log(state);
 
   if(state == "true")
   {
@@ -262,6 +263,70 @@ var getTempAndHum = function(){
           response.on('end', function () {
             var date = new Date();
             var arr_temp_hum = str.split(" ");
+            var mac_address = arr_temp_hum[2];
+            console.log(mac_address);
+
+            var options_temp = {
+              temperature: arr_temp_hum[0],
+              date: date.toString()
+            };
+
+            var options_hum = {
+              temperature: arr_temp_hum[1],
+              date: date.toString()
+            };
+
+            console.log(options_temp);
+            console.log(options_hum);
+
+            var firebaseRefTemp = firebase.database().ref("temperature");
+            firebaseRefTemp.push({
+              temperature: arr_temp_hum[0],
+              date: date.toString()
+            });
+            var firebaseRefHum = firebase.database().ref("humidity");
+            firebaseRefHum.push({
+              humidity: arr_temp_hum[1],
+              date: date.toString()
+            });
+          });
+        }).end();
+      }
+    } catch(e)
+    {
+
+    }
+  });
+}
+
+var getDust = function(){
+  var roomsRef = firebase.database().ref("rooms/");
+
+  roomsRef.on("child_added", function(data){
+    
+    try
+    {
+      if(data.val().sensor.gp2)
+      {
+        var options = {
+          host: data.val().ip,
+          path: '/gp2'
+        };
+
+        console.log(options);
+
+        http.request(options, function(response){
+          var str = '';
+
+          //another chunk of data has been recieved, so append it to `str`
+          response.on('data', function (chunk) {
+            str += chunk;
+          });
+
+          //the whole response has been recieved, so we just print it out here
+          response.on('end', function () {
+            var date = new Date();
+            var arr_temp_hum = str;
             var mac_address = arr_temp_hum[2];
             console.log(mac_address);
 
