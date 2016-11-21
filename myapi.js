@@ -36,6 +36,13 @@ process.on('uncaughtException', function (exception) {
 
 app.post("/api/dust", function(req, res){
   var dust_state = req.body.dust_state;
+
+   var obj = {
+    dust_state: dust_state
+  }
+
+  firebase.database().ref("note").set(obj);
+
   res.status(200).send(dust_state);
 });
 
@@ -87,6 +94,7 @@ app.post('/api/register', function(req, res) {
     if(mac_address==list_room[i]._id)
     {
       icon = list_room[i].icon;
+      room = list_room[i].room;
       break;
     }
   }
@@ -156,6 +164,18 @@ var getRooms = function(){
           if(list_room[i]._id==data.key)
           {
             list_room[i].icon = snapshot.val();
+            break;
+          }
+        }
+      }
+
+      if(snapshot.key=="room")
+      {
+        for(var i=0;i<list_room.length;i++)
+        {
+          if(list_room[i]._id==data.key)
+          {
+            list_room[i].room = snapshot.val();
             break;
           }
         }
@@ -301,18 +321,17 @@ var getTempAndHum = function(){
   });
 }
 
-var getDust = function(){
+var getWatt = function(){
   var roomsRef = firebase.database().ref("rooms/");
 
   roomsRef.on("child_added", function(data){
-    
     try
     {
-      if(data.val().sensor.gp2)
+      if(data.val().sensor.watt_power)
       {
         var options = {
           host: data.val().ip,
-          path: '/gp2'
+          path: '/watt_power'
         };
 
         console.log(options);
@@ -328,31 +347,19 @@ var getDust = function(){
           //the whole response has been recieved, so we just print it out here
           response.on('end', function () {
             var date = new Date();
-            var arr_temp_hum = str;
-            var mac_address = arr_temp_hum[2];
-            console.log(mac_address);
+            var arr_watt = str.split(" ");
+            var mac_address = arr_watt[1];
 
-            var options_temp = {
-              temperature: arr_temp_hum[0],
+            var options_watt = {
+              watt_power: arr_watt[0]*220,
               date: date.toString()
             };
 
-            var options_hum = {
-              temperature: arr_temp_hum[1],
-              date: date.toString()
-            };
+            console.log(options_watt);
 
-            console.log(options_temp);
-            console.log(options_hum);
-
-            var firebaseRefTemp = firebase.database().ref("temperature");
+            var firebaseRefTemp = firebase.database().ref("watt_power");
             firebaseRefTemp.push({
-              temperature: arr_temp_hum[0],
-              date: date.toString()
-            });
-            var firebaseRefHum = firebase.database().ref("humidity");
-            firebaseRefHum.push({
-              humidity: arr_temp_hum[1],
+              watt_power: Number(arr_watt[0])*220,
               date: date.toString()
             });
           });
@@ -366,5 +373,6 @@ var getDust = function(){
 }
 
 //setInterval(function(){ getTempAndHum(); }, 2 * 60000);
+//setInterval(function(){ getWatt(); }, 2 * 60000);
 app.listen(3000);
 console.log('App Server is listening on port 3000');
