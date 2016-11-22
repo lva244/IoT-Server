@@ -36,6 +36,7 @@ process.on('uncaughtException', function (exception) {
 
 app.post("/api/dust", function(req, res){
   var dust_state = req.body.dust_state;
+  console.log(dust_state);
 
    var obj = {
     dust_state: dust_state
@@ -126,6 +127,7 @@ app.post('/api/register', function(req, res) {
 
 app.post('/api/alert', function(req, res) {
   var alert = (req.body.alert) == "true" ? true : false; 
+  console.log("Alert "+alert);
 
   var obj = {
     alert: alert
