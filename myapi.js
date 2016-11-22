@@ -36,7 +36,7 @@ process.on('uncaughtException', function (exception) {
 
 app.post("/api/dust", function(req, res){
   var dust_state = req.body.dust_state;
-  console.log(dust_state);
+  console.log("Dust value: "+dust_state+"\r\n");
 
    var obj = {
     dust_state: dust_state
@@ -127,7 +127,7 @@ app.post('/api/register', function(req, res) {
 
 app.post('/api/gas', function(req, res) {
   var alert = (req.body.gas_state);
-  console.log("Alert "+alert);
+  console.log("Gas_state: "+alert+"\r\n");
 
   var obj = {
     gas_state: alert
