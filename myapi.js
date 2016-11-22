@@ -42,7 +42,7 @@ app.post("/api/dust", function(req, res){
     dust_state: dust_state
   }
 
-  firebase.database().ref("note").set(obj);
+  firebase.database().ref("note/dust").set(obj);
 
   res.status(200).send(dust_state);
 });
@@ -133,7 +133,7 @@ app.post('/api/alert', function(req, res) {
     alert: alert
   }
 
-  firebase.database().ref("note").set(obj);
+  firebase.database().ref("note/gas").set(obj);
 
   res.status(200).send("OK");
 });
