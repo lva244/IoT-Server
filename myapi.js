@@ -126,7 +126,7 @@ app.post('/api/register', function(req, res) {
 });
 
 app.post('/api/gas', function(req, res) {
-  var alert = (req.body.state_gas);
+  var alert = (req.body.gas_state);
   console.log("Alert "+alert);
 
   var obj = {
