@@ -130,7 +130,7 @@ app.post('/api/gas', function(req, res) {
   console.log("Alert "+alert);
 
   var obj = {
-    gas: alert
+    gas_state: alert
   }
 
   firebase.database().ref("note/gas").set(obj);
