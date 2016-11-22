@@ -125,12 +125,12 @@ app.post('/api/register', function(req, res) {
 
 });
 
-app.post('/api/alert', function(req, res) {
-  var alert = (req.body.alert) == "true" ? true : false; 
+app.post('/api/gas', function(req, res) {
+  var alert = (req.body.state_gas);
   console.log("Alert "+alert);
 
   var obj = {
-    alert: alert
+    gas: alert
   }
 
   firebase.database().ref("note/gas").set(obj);
