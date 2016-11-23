@@ -129,12 +129,15 @@ app.post('/api/gas', function(req, res) {
   var alert = (req.body.gas_state);
   console.log("Gas_state: "+alert+"\r\n");
 
-  var obj = {
-    gas_state: alert
+  if(alert.length<=13)
+  {
+    var obj = {
+      gas_state: alert
+    }
+
+    firebase.database().ref("note/gas").set(obj);
   }
-
-  firebase.database().ref("note/gas").set(obj);
-
+  
   res.status(200).send("OK");
 });
 
