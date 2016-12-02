@@ -95,7 +95,7 @@ app.post('/api/register', function(req, res) {
     if(mac_address==list_room[i]._id)
     {
       icon = list_room[i].icon;
-      room = list_room[i].room;
+      type_of_room = list_room[i].room;
       break;
     }
   }
