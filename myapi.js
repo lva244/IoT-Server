@@ -20,12 +20,9 @@ firebase.auth().signInWithEmailAndPassword("lvanh24494@gmail.com", "levietanh").
   // Handle Errors here.
   var errorCode = error.code;
   var errorMessage = error.message;
-  console.log(errorMessage);
-  // ...
 }).then(function(result){
   getRooms();
   checkOnline();
-  console.log(result);
 });
 
 var app = express();
