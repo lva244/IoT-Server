@@ -16,6 +16,18 @@ var config = {
 };
 firebase.initializeApp(config);
 
+firebase.auth().signInWithEmailAndPassword("lvanh24494@gmail.com", "levietanh").catch(function(error) {
+  // Handle Errors here.
+  var errorCode = error.code;
+  var errorMessage = error.message;
+  console.log(errorMessage);
+  // ...
+}).then(function(result){
+  getRooms();
+  checkOnline();
+  console.log(result);
+});
+
 var app = express();
 
 var bodyParser = require('body-parser');
@@ -119,6 +131,8 @@ app.post('/api/register', function(req, res) {
     sdoCheck: "no"
   }
 
+  console.log(mac_address);
+
   firebase.database().ref("rooms/"+mac_address).set(obj);
 
   res.status(200).send("OK");
@@ -213,8 +227,6 @@ var getRooms = function(){
   });
 }
 
-getRooms();
-
 //Check online
 var checkOnline = function(){
   var checkRef = firebase.database().ref("rooms/");
@@ -258,8 +270,6 @@ var checkOnline = function(){
     });
   });
 }
-
-checkOnline();
 
 //Get temperature and humidity from arduino and upload to server
 var getTempAndHum = function(){
