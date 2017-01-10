@@ -96,6 +96,8 @@ app.post('/api/register', function(req, res) {
   var gp2 = (req.body.gp2) == "true" ? true : false;
   var watt_power = (req.body.watt_power) == "true" ? true : false;
 
+  console.log(mac_address);
+
   var icon = "unknown";  
   for (var i =0;i<list_room.length;i++)
   {
@@ -126,7 +128,7 @@ app.post('/api/register', function(req, res) {
     sdoCheck: "no"
   }
 
-  console.log(obj._id);
+
 
   firebase.database().ref("rooms/"+mac_address).set(obj);
 
