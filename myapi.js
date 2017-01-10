@@ -62,8 +62,6 @@ app.get("/api/:mac_address/:led/:state", function(req, res){
   var led = req.params.led;
   var state = req.params.state;
 
-  console.log(mac_address+ " " + led + " " + state);
-
   if(state == "true")
   {
     state = true;
@@ -128,17 +126,15 @@ app.post('/api/register', function(req, res) {
     sdoCheck: "no"
   }
 
-  console.log(mac_address);
+  console.log(obj._id);
 
   firebase.database().ref("rooms/"+mac_address).set(obj);
 
   res.status(200).send("OK");
-
 });
 
 app.post('/api/gas', function(req, res) {
   var alert = (req.body.gas_state);
-  console.log("Gas_state: "+alert+"\r\n");
 
   if(alert.length<=13)
   {
