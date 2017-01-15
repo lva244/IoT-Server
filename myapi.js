@@ -7,7 +7,9 @@ var querystring = require('querystring');
 var fromArduino = false;
 
 var myInterval_dust;
+var dust_state;
 var myInterval_gas;
+var alert;
 
 var list_room = [];
 
@@ -48,7 +50,7 @@ process.on('uncaughtException', function (exception) {
 });
 
 app.post("/api/dust", function(req, res){
-  var dust_state = req.body.dust_state;
+  dust_state = req.body.dust_state;
   console.log("Dust value: "+dust_state+"\r\n");
 
    var obj = {
@@ -167,7 +169,7 @@ app.post('/api/register', function(req, res) {
 });
 
 app.post('/api/gas', function(req, res) {
-  var alert = (req.body.gas_state);
+  alert = (req.body.gas_state);
 
   if(alert.length<=13)
   {
@@ -183,12 +185,14 @@ app.post('/api/gas', function(req, res) {
     console.log(alert);
     clearTimeout(myInterval_gas);
     myInterval_gas = setTimeout(function(){ 
+      console.log(alert);
       if(alert=="Not safe")
       {
-        postMethod("SmartHome", "Nồng độ gas: Nồng độ gas hiện đang cao, bạn nên kiểm tra phòng bếp để đảm an toàn, nhớ mang theo dụng cụ phòng khí độc");
+        postMethod("SmartHome", "Nồng độ gas: Nồng độ gas hiện đang cao, bạn nên kiểm tra phòng bếp để đảm bảo an toàn, nhớ mang theo dụng cụ phòng khí độc");
         clearTimeout(myInterval_gas);
       } else {
         clearTimeout(myInterval_gas);
+        console.log("Clear");
       }
     }, 60000);
   }
@@ -482,7 +486,7 @@ var getWatt = function(){
   });
 }
 
-setInterval(function(){ getTempAndHum(); }, 2 * 60000);
+//setInterval(function(){ getTempAndHum(); }, 2 * 60000);
 //setInterval(function(){ getWatt(); }, 2 * 60000);
 app.listen(3000);
 console.log('App Server is listening on port 3000');
