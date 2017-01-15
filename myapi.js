@@ -405,7 +405,7 @@ var getTempAndHum = function(){
             else if(arr_temp_hum[0] > 39)
             {
               postMethod("SmartHome", "Nhiệt độ của bạn hiện tại là "+ arr_temp_hum[1] +"°C, đây là nhiệt độ khá cao, bạn nên kiểm tra lại để đề phòng có cháy nổ");
-            } else if (arr_temp_hum[1] > 30)
+            } else if (arr_temp_hum[0] > 30)
             {
               postMethod("SmartHome", "Nhiệt độ của bạn hiện đang là "+ arr_temp_hum[1] +"°C bạn nên giảm nhiệt độ máy lạnh để cân bằng nhiệt độ trong nhà");
             }
