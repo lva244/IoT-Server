@@ -481,7 +481,7 @@ var getWatt = function(){
   });
 }
 
-//setInterval(function(){ getTempAndHum(); }, 2 * 60000);
+setInterval(function(){ getTempAndHum(); }, 2 * 60000);
 //setInterval(function(){ getWatt(); }, 2 * 60000);
 app.listen(3000);
 console.log('App Server is listening on port 3000');
