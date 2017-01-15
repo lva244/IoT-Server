@@ -389,14 +389,15 @@ var getTempAndHum = function(){
               humidity: arr_temp_hum[1],
               date: date.toString()
             };
-
-            if(arr_temp_hum[1] > 56)
-            {
-              postMethod("SmartHome", "Độ ẩm của bạn là "+arr_temp_hum[1]+"% hiện đang cao hơn bình thường");
-            } else if (arr_temp_hum[1] > 70)
+            
+            if (arr_temp_hum[1] > 80)
             {
               postMethod("SmartHome", "Độ ẩm của bạn hiện đang rất cao ("+arr_temp_hum[1]+"%), bạn nên thực hiện một số biện pháp để giảm độ ẩm");
             }
+            else if(arr_temp_hum[1] > 60)
+            {
+              postMethod("SmartHome", "Độ ẩm của bạn là "+arr_temp_hum[1]+"% hiện đang cao hơn bình thường");
+            }  
 
             if (arr_temp_hum[0] > 45)
             {
@@ -405,7 +406,7 @@ var getTempAndHum = function(){
             else if(arr_temp_hum[0] > 39)
             {
               postMethod("SmartHome", "Nhiệt độ của bạn hiện tại là "+ arr_temp_hum[1] +"°C, đây là nhiệt độ khá cao, bạn nên kiểm tra lại để đề phòng có cháy nổ");
-            } else if (arr_temp_hum[0] > 30)
+            } else if (arr_temp_hum[0] > 33)
             {
               postMethod("SmartHome", "Nhiệt độ của bạn hiện đang là "+ arr_temp_hum[1] +"°C bạn nên giảm nhiệt độ máy lạnh để cân bằng nhiệt độ trong nhà");
             }
