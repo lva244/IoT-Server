@@ -2,8 +2,12 @@ var http = require('http');
 var express = require('express');
 var path    = require("path");
 var firebase = require("firebase");
+var querystring = require('querystring');
 
 var fromArduino = false;
+
+var myInterval_dust;
+var myInterval_gas;
 
 var list_room = [];
 
@@ -49,6 +53,33 @@ app.post("/api/dust", function(req, res){
 
    var obj = {
     dust_state: dust_state
+  }
+
+  if(dust_state=="Not good")
+  {
+    clearTimeout(myInterval_dust);
+    myInterval_dust = setTimeout(function(){ 
+      console.log(dust_state);
+      if(dust_state=="Not good")
+      {
+        postMethod("SmartHome", "Độ bụi: Độ bụi đang không được tốt lắm, bạn nên mang theo khẩu trang và trang bị khi ra ngoài");
+        clearTimeout(myInterval_dust);
+      } else {
+        clearTimeout(myInterval_dust);
+      }
+    }, 60000);
+  } else if (dust_state=="Bad") {
+    clearTimeout(myInterval_dust);
+    myInterval_dust = setTimeout(function(){ 
+      console.log(dust_state);
+      if(dust_state=="Bad")
+      {
+        postMethod("SmartHome", "Độ bụi: Độ bụi trong không khí đang rất xấu, bạn không nên ra ngoài");
+        clearTimeout(myInterval_dust);
+      } else {
+        clearTimeout(myInterval_dust);
+      }
+    }, 60000);
   }
 
   firebase.database().ref("note/dust").set(obj);
@@ -145,6 +176,21 @@ app.post('/api/gas', function(req, res) {
     }
 
     firebase.database().ref("note/gas").set(obj);
+  }
+
+  if(alert=="Not safe")
+  {
+    console.log(alert);
+    clearTimeout(myInterval_gas);
+    myInterval_gas = setTimeout(function(){ 
+      if(alert=="Not safe")
+      {
+        postMethod("SmartHome", "Nồng độ gas: Nồng độ gas hiện đang cao, bạn nên kiểm tra phòng bếp để đảm an toàn, nhớ mang theo dụng cụ phòng khí độc");
+        clearTimeout(myInterval_gas);
+      } else {
+        clearTimeout(myInterval_gas);
+      }
+    }, 60000);
   }
   
   res.status(200).send("OK");
@@ -266,6 +312,42 @@ var checkOnline = function(){
   });
 }
 
+var postMethod = function(title, message){
+  // Build the post string from an object
+  var post_data = JSON.stringify({
+      "tokens": ["dH_rZXgjUCg:APA91bF8lfVH-52vBupqPpbBlTd69Df9FFzGLdJc5N7mSwabe62AbrTTduP2tpJL-TmuVX4LbOqwCM58JpXwlMi6XP0lU8lAgxvF_f5fFNWMNvSZoPaLFQXVIvbKfyjofOEfBipdcgVy"],
+      "profile": "smarthome",
+      "notification": {
+        "title": title,
+          "message": message
+      }
+  });
+
+  // An object of options to indicate where to post to
+  var post_options = {
+      host: 'api.ionic.io',
+      port: '80',
+      path: '/push/notifications',
+      method: 'POST',
+      headers: {
+          'Content-Type': 'application/json',
+          'Authorization': "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJjMTdiMzFlMC1mMDg2LTQ1NTAtOGRjZS0wOTA3NDlhM2UzMTEifQ.mkSEfIKiTtPYGFTiGu0FtItqm994HOrM7QUBugHu8r4"
+      }
+  };
+
+  // Set up the request
+  var post_req = http.request(post_options, function(res) {
+      res.setEncoding('utf8');
+      res.on('data', function (chunk) {
+          console.log('Response: ' + chunk);
+      });
+  });
+
+  // post the data
+  post_req.write(post_data);
+  post_req.end();
+}
+
 //Get temperature and humidity from arduino and upload to server
 var getTempAndHum = function(){
   var roomsRef = firebase.database().ref("rooms/");
@@ -304,12 +386,29 @@ var getTempAndHum = function(){
             };
 
             var options_hum = {
-              temperature: arr_temp_hum[1],
+              humidity: arr_temp_hum[1],
               date: date.toString()
             };
 
-            console.log(options_temp);
-            console.log(options_hum);
+            if(arr_temp_hum[1] > 56)
+            {
+              postMethod("SmartHome", "Độ ẩm của bạn là "+arr_temp_hum[1]+"% hiện đang cao hơn bình thường");
+            } else if (arr_temp_hum[1] > 70)
+            {
+              postMethod("SmartHome", "Độ ẩm của bạn hiện đang rất cao ("+arr_temp_hum[1]+"%), bạn nên thực hiện một số biện pháp để giảm độ ẩm");
+            }
+
+            if (arr_temp_hum[0] > 45)
+            {
+              postMethod("SmartHome", "Nguy hiểm! Nhiệt độ của bạn hiện tại là "+ arr_temp_hum[1] +"°C, hãy lập tức kiểm tra nhà bạn và mang theo dụng cụ chữa cháy");    
+            }
+            else if(arr_temp_hum[0] > 39)
+            {
+              postMethod("SmartHome", "Nhiệt độ của bạn hiện tại là "+ arr_temp_hum[1] +"°C, đây là nhiệt độ khá cao, bạn nên kiểm tra lại để đề phòng có cháy nổ");
+            } else if (arr_temp_hum[1] > 30)
+            {
+              postMethod("SmartHome", "Nhiệt độ của bạn hiện đang là "+ arr_temp_hum[1] +"°C bạn nên giảm nhiệt độ máy lạnh để cân bằng nhiệt độ trong nhà");
+            }
 
             var firebaseRefTemp = firebase.database().ref("temperature");
             firebaseRefTemp.push({
@@ -382,7 +481,7 @@ var getWatt = function(){
   });
 }
 
-setInterval(function(){ getTempAndHum(); }, 2 * 60000);
+//setInterval(function(){ getTempAndHum(); }, 2 * 60000);
 //setInterval(function(){ getWatt(); }, 2 * 60000);
 app.listen(3000);
 console.log('App Server is listening on port 3000');
