@@ -57,9 +57,10 @@ app.post("/api/dust", function(req, res){
     dust_state: dust_state
   }
 
-  if(dust_state=="Not good")
+  if(dust_state.trim()=="Not good")
   {
-    clearTimeout(myInterval_dust);
+    console.log("Not good");
+    //clearTimeout(myInterval_dust);
     myInterval_dust = setTimeout(function(){ 
       console.log(dust_state);
       if(dust_state=="Not good")
@@ -70,8 +71,8 @@ app.post("/api/dust", function(req, res){
         clearTimeout(myInterval_dust);
       }
     }, 60000);
-  } else if (dust_state=="Bad") {
-    clearTimeout(myInterval_dust);
+  } else if (dust_state.trim()=="Bad") {
+    console.log("Bad");
     myInterval_dust = setTimeout(function(){ 
       console.log(dust_state);
       if(dust_state=="Bad")
@@ -127,7 +128,6 @@ app.post('/api/register', function(req, res) {
   var dht11 = (req.body.dht11) == "true" ? true : false;
   var mq135 = (req.body.mq135) == "true" ? true : false;
   var gp2 = (req.body.gp2) == "true" ? true : false;
-  var watt_power = (req.body.watt_power) == "true" ? true : false;
 
   console.log(mac_address);
 
@@ -154,7 +154,6 @@ app.post('/api/register', function(req, res) {
       dht11: dht11,
       mq135: mq135,
       gp2: gp2,
-      watt_power: watt_power
     },
     state: "on",
     icon: icon,
@@ -316,7 +315,7 @@ var checkOnline = function(){
   });
 }
 
-var postMethod = function(title, message){
+var postMethod = function(title, message){  
   // Build the post string from an object
   var post_data = JSON.stringify({
       "tokens": ["dH_rZXgjUCg:APA91bF8lfVH-52vBupqPpbBlTd69Df9FFzGLdJc5N7mSwabe62AbrTTduP2tpJL-TmuVX4LbOqwCM58JpXwlMi6XP0lU8lAgxvF_f5fFNWMNvSZoPaLFQXVIvbKfyjofOEfBipdcgVy"],
@@ -435,58 +434,6 @@ var getTempAndHum = function(){
   });
 }
 
-var getWatt = function(){
-  var roomsRef = firebase.database().ref("rooms/");
-
-  roomsRef.on("child_added", function(data){
-    try
-    {
-      if(data.val().sensor.watt_power)
-      {
-        var options = {
-          host: data.val().ip,
-          path: '/watt_power'
-        };
-
-        console.log(options);
-
-        http.request(options, function(response){
-          var str = '';
-
-          //another chunk of data has been recieved, so append it to `str`
-          response.on('data', function (chunk) {
-            str += chunk;
-          });
-
-          //the whole response has been recieved, so we just print it out here
-          response.on('end', function () {
-            var date = new Date();
-            var arr_watt = str.split(" ");
-            var mac_address = arr_watt[1];
-
-            var options_watt = {
-              watt_power: arr_watt[0]*220,
-              date: date.toString()
-            };
-
-            console.log(options_watt);
-
-            var firebaseRefTemp = firebase.database().ref("watt_power");
-            firebaseRefTemp.push({
-              watt_power: Number(arr_watt[0])*220,
-              date: date.toString()
-            });
-          });
-        }).end();
-      }
-    } catch(e)
-    {
-
-    }
-  });
-}
-
 //setInterval(function(){ getTempAndHum(); }, 2 * 60000);
-//setInterval(function(){ getWatt(); }, 2 * 60000);
 app.listen(3000);
 console.log('App Server is listening on port 3000');
